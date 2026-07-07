@@ -1,22 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="style.css">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Map Builder</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Map Builder</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="toolbar">
-  <div id="tile-strip">
-    <!-- tiles will go here -->
-  </div>
-  <div id="toolbar-actions">
-    <!-- buttons will go here -->
-  </div>
-</div>
+  <div id="toolbar">
 
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="tile-strip">
+      <button class="tile-btn active" data-tile="grass">
+        <img src="whitesquare.png" alt="Grass">
+      </button>
+      <button class="tile-btn" data-tile="road">
+        <img src="whitesquare.png" alt="Road">
+      </button>
+      <button class="tile-btn" data-tile="water">
+        <img src="whitesquare.png" alt="Water">
+      </button>
+      <button class="tile-btn" data-tile="building">
+        <img src="whitesquare.png" alt="Building">
+      </button>
+      <button class="tile-btn" data-tile="park">
+        <img src="whitesquare.png" alt="Park">
+      </button>
+    </div>
+
+    <div id="toolbar-actions">
+      <button id="save-btn">Save</button>
+      <button id="load-btn">Load</button>
+      <button id="import-btn">Import JSON</button>
+    </div>
+
+  </div>
+
+  <canvas id="mapCanvas"></canvas>
+
+  <script src="script.js"></script>
+
 </body>
 </html>
