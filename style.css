@@ -1,0 +1,25 @@
+/* Add styling for the parent toolbar to lay its children out side-by-side */
+#toolbar {
+  display: flex;
+  justify-content: space-between; /* Pushes the tile selection to the left and save/load to the right */
+  align-items: center;            /* Centers them vertically relative to each other */
+  background-color: #ffffff;      /* Optional: matches your background */
+  border-bottom: 1px solid #ccc;  /* Optional: separates toolbar from canvas */
+}
+
+.scroll-container {
+  display: flex;             
+  flex-wrap: nowrap;         
+  overflow-x: auto;          
+  overflow-y: hidden;         
+  /* Remove width: 100% so they don't force a full-width block row */
+  padding: 15px;             
+}
+
+.scroll-item {
+  flex: 0 0 auto;            
+  width: 250px;              
+  margin-right: 15px;
+  background-color: #f1f1f1;
+  text-align: center;
+}
