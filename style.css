@@ -1,3 +1,14 @@
+* { /*Removes unnecessary default margins and paddings */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body { /*Prevents any page-wide scrollbars*/
+  overflow: hidden;
+  background-color: #1a1a1a;
+}
+
 /* Add styling for the parent toolbar to lay its children out side-by-side */
 #toolbar {
   display: flex; /* This immediately causes the children divs inside the toolbar div to be laid out side-by-side horizontally instead of stacked on top of each other (which is the default in HTML) */
@@ -24,4 +35,50 @@
   margin-right: 15px;
   background-color: #f1f1f1;
   text-align: center; /* Centers any text or images inside the button horizontally */
+  border: 2px solid transparent; /* transparent border by default */
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px;
 }
+
+.scroll-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* makes image fill the button without distorting */
+}
+
+.scroll-item.active { /*Make the default tile active on default */
+  border-color: #4a90e2; /* blue highlight for selected tile */
+}
+
+.scroll-item:hover { /*Which button is hovered over is highlighted */
+  border-color: #aaa;
+}
+
+.toolbar-actions { /*Toolbar div containing the action buttons */
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  gap: 8px;
+}
+
+.toolbar-item { /*The toolbar buttons, Save, Load, Import  JSON, basic aesthetic properties */
+  padding: 8px 16px;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.toolbar-item:hover { /*Which (toolbar) button is hovered over is highlighted */
+  background-color: #555;
+}
+
+#mapCanvas {
+  display: block;
+  width: 100vw;
+  height: calc(100vh - 80px);
+}
+

@@ -82,3 +82,4 @@ canvas.addEventListener("mouseup", (event) => {
   isDragging = false
 });
 
+
