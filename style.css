@@ -1,25 +1,27 @@
 /* Add styling for the parent toolbar to lay its children out side-by-side */
 #toolbar {
-  display: flex;
-  justify-content: space-between; /* Pushes the tile selection to the left and save/load to the right */
-  align-items: center;            /* Centers them vertically relative to each other */
-  background-color: #ffffff;      /* Optional: matches your background */
-  border-bottom: 1px solid #ccc;  /* Optional: separates toolbar from canvas */
+  display: flex; /* This immediately causes the children divs inside the toolbar div to be laid out side-by-side horizontally instead of stacked on top of each other (which is the default in HTML) */
+  justify-content: space-between; /* Pushes the tile selection to the left and save/load to the right, distributes items evenly along the main axis, pushing the first item to the start edge and the last item to the end edge, Any remaining empty space inside the parent container is divided equally and placed between the inner items, but since we have scrollable containers, it's a little different for us */
+                                  /* If we remove  'justify-content: space-between;' the webpage will looks the same, why? Our .scroll-item buttons have a massive fixed width (width: 250px;). Multiply 250px by 5 tile buttons, plus another 3 action buttons, plus all the margins and paddings, and the combined size of these two containers is actually wider than your current screen. When elements are too wide for the screen, they naturally fill the entire width. Because there is zero "leftover" empty space on the screen, space-between has nothing to distribute. That's why removing it made almost no visible difference. */      
+  align-items: center;            /* Centers them vertically relative to each other, so for understanding "align-items: center;" basically, if we have a set of items reaching down towards the bottom, and another more towards the top, align-items: center will pull them all towards the middle, In Flexbox, "items" only refers to the immediate child elements directly inside the flex container. So for your #toolbar, the flex container is the outer toolbar, and its "items" are the two .scroll-container divs., align-items: center will not look deeper for any "grandchildren" (i.e., the buttons inside the scrollable containers), so in this case, it will center our two scrollable containers, but not the buttons within those containers    */
+  background-color: #ffffff;      /* matches your background */
+  border-bottom: 1px solid #ccc;  /* separates toolbar from canvas, Draws a thin, light gray line right underneath the toolbar. This acts as a clean visual barrier to separate your menu from the canvas drawing area below */
 }
 
 .scroll-container {
-  display: flex;             
-  flex-wrap: nowrap;         
-  overflow-x: auto;          
-  overflow-y: hidden;         
+  display: flex;  /* Makes sure that the scrollable containers themselves have their items laid out side-by-side horizontally on the row */
+  flex-wrap: nowrap; /* so 'flex-wrap: nowrap' prevents the program to start putting items (in our case, the buttons) onto a new line once we've ran out of space horizontally for that container/div, It tells the browser: "No matter how many buttons are added, and no matter how small the screen gets (like for example going onto a mobile device, the screen is smaller, the browser has less overall space to work with, so elements get smushed or compressed, a container containing 20 elements may not have enough space to display all 20 elements on the same line as comapred to PC), keep every single button locked tightly onto a single horizontal line." This line works in tandem with the 'overflow-x: auto' line below */
+  overflow-x: auto;  /*Adds a horizontal scrollbar only if the items take up more space than the screen allows, so if your screen size shrinks or you add too many buttons, the user can easily swipe or scroll sideways through the tiles without breaking your layout. So by pairing `flex-wrap: nowrap;` with **`overflow-x: auto;`**, you create the ideal setup for a horizontal scrollbar. The `nowrap` property forces all of the buttons to remain lined up in a single horizontal row rather than wrapping to a new line, which causes them to eventually extend past the edge of the `.scroll-container`. Because `overflow-x: auto;` detects that the internal content is spilling out of its bounds, it automatically generates a horizontal scrollbar so users can easily slide left and right to see every button. */
+  overflow-y: hidden;  /* This completely hides any vertical overflow, ie, it stops a vertical scroll bar from appearing, so it prevents an accidental, ugly vertical scrollbar from showing up if a button pixel overflows upwards or downwards, it's for aesthetic purposes */
   /* Remove width: 100% so they don't force a full-width block row */
-  padding: 15px;             
+  padding: 15px; /* Adds internal space inside the container, so it creates a 15-pixel cushion around your buttons so they aren't crammed tightly against the edges of the toolbar*/     
 }
 
 .scroll-item {
-  flex: 0 0 auto;            
-  width: 250px;              
+  flex: 0 0 auto; /*This targets the actual individual clickable buttons within your lists, it's a shorthand for three properties: 'flex-grow: 0' (don't stretch), 'flex-shrink: 0' (don't squish), and 'flex-basis: auto' (use the element's actual width). Without this, if space gets tight, Flexbox will automatically squeeze your buttons until they distort. This specification tells the browser: "Keep my buttons exactly the width I specified, no matter what."*/        
+  width: 55px;
+  height: 50px;
   margin-right: 15px;
   background-color: #f1f1f1;
-  text-align: center;
+  text-align: center; /* Centers any text or images inside the button horizontally */
 }
