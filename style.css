@@ -41,7 +41,7 @@ body { /*Prevents any page-wide scrollbars*/
   padding: 2px;
 }
 
-.scroll-item img {
+.scroll-item img { /*.scroll-item img is called a descendant selector. It means "target any <img> element that lives anywhere inside an element with the class scroll-item." You don't need to add any class to the <img> itself — CSS finds it automatically based on its position in the HTML structure.*/
   width: 100%;
   height: 100%;
   object-fit: cover; /* makes image fill the button without distorting */
