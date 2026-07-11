@@ -83,3 +83,22 @@ canvas.addEventListener("mouseup", (event) => {
 });
 
 
+function loadImage(src) {
+  return new Promise((resolve) => {
+  const img = new Image();
+  img.src = src;  
+  img.onload = () => {
+    resolve(img);
+  }
+});
+ 
+/*
+The above is an asynchronous image loading function, following these steps:
+- A src is put into the parameter of the function, which in your case will be a file path.
+- The function immediately returns a pending Promise, which acts like a background receipt telling your code that the task has started.
+- Inside, the system creates a variable called img that generates a new Image object.
+- The image's source is set to the src provided in the parameter, which kicks off the background download process.
+- Once the image finishes loading, the onload event fires and triggers the resolve function. This is the green light signal confirming the promise is fulfilled and passing the ready-to-use image back to your code.
+*/
+
+}
