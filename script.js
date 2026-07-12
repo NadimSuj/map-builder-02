@@ -1,3 +1,155 @@
+// =====================
+// SETUP
+// =====================
+
+// 1. Get canvas and context (same as v1, different ID)
+
+// 2. Constants: TILE_SIZE, and world dimensions
+//    (hint: the world should be bigger than the canvas
+//    so there's actually somewhere to pan to)
+
+// 3. TILE constants object
+
+// 4. TILE_IMAGES object (starts empty)
+
+// 5. loadImage function
+
+// 6. Promise.all to load all five images, populate
+//    TILE_IMAGES, then call render()
+
+const canvas = document.getElementById("mapCanvas");  //It locks into and finds the canvas element in the HTML file with the id "mapCanvas", and assigns it to the variable `canvas`. This allows the JavaScript code to interact with the canvas element, such as drawing on it or responding to user input.
+const ctx = canvas.getContext("2d"); //This variable stores an object called a "CanvasRenderingContext2D" object, which gets summoned after we make the call, ".getContext('2d')" on our canvas object that we just found one line above. This object provides a set of methods and properties that allow us to draw and manipulate 2D graphics on the canvas. We can use this context to draw shapes, images, text, and more on the canvas element in our web page.
+
+// Set canvas to fill the viewport below the toolbar
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight - 80; // 80px toolbar height
+
+// World size: fixed number of tiles, bigger than viewport
+const WORLD_COLS = 100;
+const WORLD_ROWS = 100;
+const TILE_SIZE = 32;
+
+// Maps tile type names to string keys (same as v1)
+const TILE = {
+  GRASS: "grass",
+  ROAD: "road",
+  WATER: "water",
+  BUILDING: "building",
+  PARK: "park"
+};
+
+// Will map tile type keys to loaded Image objects
+// Starts empty, gets populated after loading finishes
+const TILE_IMAGES = {};
+
+function loadImage(src) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => {
+      resolve(img);
+    };
+  });
+}
+
+/*
+The above is an asynchronous image loading function, following these steps:
+- A src is put into the parameter of the function, which in your case will be a file path.
+- The function immediately returns a pending Promise, which acts like a background receipt telling your code that the task has started.
+- Inside, the system creates a variable called img that generates a new Image object.
+- The image's source is set to the src provided in the parameter, which kicks off the background download process.
+- Once the image finishes loading, the onload event fires and triggers the resolve function. This is the green light signal confirming the promise is fulfilled and passing the ready-to-use image back to your code.
+*/
+
+
+/*
+
+*As concerning the promise.all and then clause below:*
+
+When you write Promise.all([...]), you pass it an array of promises. Each promise was created by loadImage(). 
+Remember what loadImage() does when it finishes:
+
+img.onload = () => {
+  resolve(img); // <-- resolves with the actual Image object
+};
+
+It resolves with img — the actual loaded Image object. That resolved value doesn't disappear. JavaScript collects it.
+Promise.all waits for every promise in the array to resolve, then collects all the resolved values in the same order you listed them and packages them into a single array. 
+That array gets passed into .then() as the first argument.
+
+So the chain looks like this:
+loadImage("tile_0001.png") → resolves with Image object → collected at index 0
+loadImage("tile_0166.png") → resolves with Image object → collected at index 1
+loadImage("tile_0039.png") → resolves with Image object → collected at index 2
+loadImage("tile_0064.png") → resolves with Image object → collected at index 3
+loadImage("tile_0000.png") → resolves with Image object → collected at index 4
+                                                                    ↓
+                                              Promise.all packages these into [img0, img1, img2, img3, img4]
+                                                                    ↓
+                                              .then((images) => ...) receives that array
+
+So images in .then((images) => ...) isn't a special name — it's just the parameter name you give to whatever Promise.all hands you. 
+You could call it results or loadedTiles or anything. images just makes it clear what it contains.
+*/
+
+Promise.all([
+  loadImage("Images/tile_0001.png"), // grass
+  loadImage("Images/tile_0166.png"), // road
+  loadImage("Images/tile_0039.png"), // water
+  loadImage("Images/tile_0064.png"), // building
+  loadImage("Images/tile_0000.png"), // park
+]).then((images) => {
+  // images[0] is the loaded grass Image object
+  // images[1] is the loaded road Image object
+  // etc.
+
+  TILE_IMAGES[TILE.GRASS] = images[0];
+  TILE_IMAGES[TILE.ROAD] = images[1];
+  TILE_IMAGES[TILE.WATER] = images[2];
+  TILE_IMAGES[TILE.BUILDING] = images[3];
+  TILE_IMAGES[TILE.PARK] = images[4];
+
+  // NOW it's safe to render — images are ready
+  render();
+});
+
+/*
+As concerning the TILE, path strings, and Image objects above: the path string is the string that lays out the actual file path to our images, 
+the program uses these strings in tandem with things like Image objects to actually find the images and load them, 
+the TILE key is the hashmap for mapping keyword identifiers with actual string values, so TILE.GRASS returns "grass," 
+TILE.ROAD returns "road," etc., it's useful for later references in our programs for when we have to identify the tile types and don't want to make any typos or errors, 
+the Image object is the object containing the actual loaded image resource that the canvas API knows how to draw
+*/
+
+// =====================
+// WORLD STATE
+// =====================
+
+// 1. The world array (2D, WORLD_ROWS x WORLD_COLS)
+//    Every cell starts as TILE.GRASS (not TILE.EMPTY like v1 —
+//    a grass base makes more visual sense for a map builder)
+
+// 2. selectedTile — default to TILE.GRASS
+
+// 3. Camera variables (the five we discussed)
+
+// 4. isPainting
+
+// 5. hoveredCell
+
+const world = []; // This variable is a 2D array that represents the grid of tiles in our world. Each element in the world array corresponds to a cell in the grid, and it stores the type of tile that is present in that cell (e.g., empty, road, building, park). The world array is initialized as an empty array, and then we use nested loops to fill it with rows and columns of TILE.GRASS values.
+
+//world is filled horizontally running until it hits the amount of columns, and that process runs for however many rows there are 
+for(let i = 0; i < WORLD_ROWS; i++){
+  const rowArray = [];
+  for(let j = 0; j < WORLD_COLS; j++){
+    rowArray.push(TILE.GRASS);
+  }
+  world.push(rowArray);
+}
+
+let selectedTile = TILE.GRASS //whatever our selected tile is, this defaults to the grass tile. We should use "let" for our standard variable declaration (for when we expect our values to change) because if we use something like "const" then that tells the program that the value will never change. so "let" is better.
+
 let cameraX = 0; // The total horizontal offset of the world from its origin. At startup this is 0, meaning the world starts at the left edge of the canvas. As the user drags left, this becomes negative; drag right, it becomes positive. Every tile's drawn X position is calculated relative to this value.
 let cameraY = 0; // The total vertical offset of the world from its origin. At startup this is 0, meaning the world starts at the top edge of the canvas. As the user drags up, this becomes negative; drag down, it becomes positive. Every tile's drawn Y position is calculated relative to this value.
 //So cameraX/Y is a constantly changing variable that depends on the position of map. So at the begininning of the program, it would have default coordinates.
@@ -42,6 +194,14 @@ To understand the mouse's "pixel position," think of this:
     - So the whole dynamic with dragStartX/Y being subtracted from current mouse position is to tell us where on our map we're going through our dragging, and CameraX/Y tells us what we're supposed to see when we get there, although this is not one-step at a time printing out like a fax machine, it's a constantly updating system of functions and variables that makes the dragging experience seamless
 */
 
+let isPainting = false; //boolean to let us know if we're painting or not
+
+let hoveredCell = null; // Currently-hovered cell, or null if mouse isn't over the canvas, this variable is for tracking exactly where the mouse pointer if floating over the canvas matrix at any given milisecond, the rendering system uses this coordinate to draw that translucent preview box under your cursor before you actually click to paint
+
+
+/*
+To be used later:
+
 canvas.addEventListener("mousedown", (event) => {
   //Something like:
   // isDragging = true
@@ -82,23 +242,4 @@ canvas.addEventListener("mouseup", (event) => {
   isDragging = false
 });
 
-
-function loadImage(src) {
-  return new Promise((resolve) => {
-  const img = new Image();
-  img.src = src;  
-  img.onload = () => {
-    resolve(img);
-  }
-});
- 
-/*
-The above is an asynchronous image loading function, following these steps:
-- A src is put into the parameter of the function, which in your case will be a file path.
-- The function immediately returns a pending Promise, which acts like a background receipt telling your code that the task has started.
-- Inside, the system creates a variable called img that generates a new Image object.
-- The image's source is set to the src provided in the parameter, which kicks off the background download process.
-- Once the image finishes loading, the onload event fires and triggers the resolve function. This is the green light signal confirming the promise is fulfilled and passing the ready-to-use image back to your code.
 */
-
-}
