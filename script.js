@@ -198,9 +198,98 @@ let isPainting = false; //boolean to let us know if we're painting or not
 
 let hoveredCell = null; // Currently-hovered cell, or null if mouse isn't over the canvas, this variable is for tracking exactly where the mouse pointer if floating over the canvas matrix at any given milisecond, the rendering system uses this coordinate to draw that translucent preview box under your cursor before you actually click to paint
 
+/**
+ * Renders the visible portion of the game world (camera culling) 
+ * and draws the hover preview element.
+ */
+function render() {
+  // =========================================================================
+  // 1. CLEAR THE CANVAS
+  // =========================================================================
+  // Prepares the canvas for a fresh frame by clearing previous drawings.
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-/*
-To be used later:
+  // =========================================================================
+  // 2. CALCULATE VISIBLE GRID BOUNDARIES (CULLING)
+  // =========================================================================
+  // Computes the range of columns and rows currently inside the viewport.
+  // This ensures we only draw what is on-screen, maximizing performance.
+
+  // The leftmost visible column index, clamped to 0.
+  const firstCol = Math.max(0, Math.floor(-cameraX / TILE_SIZE));
+  
+  // The rightmost visible column index, clamped to the rightmost edge of the map.
+  const lastCol = Math.min(WORLD_COLS - 1, Math.floor((-cameraX + canvas.width) / TILE_SIZE));
+  
+  // The topmost visible row index, clamped to 0.
+  const firstRow = Math.max(0, Math.floor(-cameraY / TILE_SIZE));
+  
+  // The bottommost visible row index, clamped to the bottommost edge of the map.
+  const lastRow = Math.min(WORLD_ROWS - 1, Math.floor((-cameraY + canvas.height) / TILE_SIZE));
+
+  // =========================================================================
+  // 3. RENDER VISIBLE TILES
+  // =========================================================================
+  // Loops only through the visible rows and columns to draw the active tiles.
+  for (let i = firstRow; i <= lastRow; i++) {
+    for (let j = firstCol; j <= lastCol; j++) {
+      // Calculates the screen position for the current tile.
+      const pixelX = cameraX + (j * TILE_SIZE);
+      const pixelY = cameraY + (i * TILE_SIZE);
+
+      // Retrieves the tile identifier and its associated pre-loaded image asset.
+      const tileType = world[i][j];
+      const image = TILE_IMAGES[tileType];
+      
+      // Draw the tile on the screen context.
+      ctx.drawImage(image, pixelX, pixelY, TILE_SIZE, TILE_SIZE);
+    }
+  }
+
+  // =========================================================================
+  // 4. DRAW HOVER PREVIEW
+  // =========================================================================
+  // Renders a semi-transparent preview of the selected tile on the hovered coordinate.
+  if (hoveredCell !== null) {
+    // Calculates screen coordinates for the hovered target grid space.
+    const x = cameraX + (hoveredCell.col * TILE_SIZE);
+    const y = cameraY + (hoveredCell.row * TILE_SIZE);
+    
+    // Set global opacity to 40% for the preview effect.
+    ctx.globalAlpha = 0.4;
+    
+    // Draw the image of the selected tile at the hovered location.
+    ctx.drawImage(TILE_IMAGES[selectedTile], x, y, TILE_SIZE, TILE_SIZE);
+    
+    // Reset global opacity back to 100% so subsequent rendering is unaffected.
+    ctx.globalAlpha = 1.0;
+  }
+}
+
+// =====================
+// INTERACTION
+// =====================
+
+// 1. canvas mousedown
+//    - if right-click or middle-click: start dragging
+//    - if left-click: start painting
+//    (we need to separate drag from paint by mouse button)
+
+// 2. canvas mousemove
+//    - if dragging: update camera, re-render
+//    - if painting: paint tile at current cell, re-render
+//    - always: update hoveredCell, re-render
+
+// 3. canvas mouseup
+//    - stop dragging and painting
+
+// 4. canvas mouseleave
+//    - stop dragging, painting, clear hoveredCell
+
+// 5. A helper function: screenToWorld(event)
+//    - converts mouse pixel position to world grid coordinates
+//    - returns { row, col } or null if outside world bounds
+
 
 canvas.addEventListener("mousedown", (event) => {
   //Something like:
@@ -241,5 +330,14 @@ canvas.addEventListener("mouseup", (event) => {
   // isDragging = false
   isDragging = false
 });
+
+/*
+To be used later: 
+
+
+
+
+
+
 
 */
