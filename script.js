@@ -150,6 +150,18 @@ for(let i = 0; i < WORLD_ROWS; i++){
 
 let selectedTile = TILE.GRASS //whatever our selected tile is, this defaults to the grass tile. We should use "let" for our standard variable declaration (for when we expect our values to change) because if we use something like "const" then that tells the program that the value will never change. so "let" is better.
 
+/*
+You may be wondering:
+some tiles aren't fully in view at any given point of the program, whether you're dragging the screen or simple just doing nothing, 
+so some tiles you'll only see a portion of them like their corner sticking out at the edge of the screen, 
+from this program, there are only precise and mathematical calculations, no part that actually handles partially displaying tiles,
+so how can this be explained?
+
+the code decides based on cameraX, cameraY, and all the other variables and blocks used for our 2D camera mechanics what and where the tiles should be displayed based on our given screen position, 
+but the browser itself also plays a part, it clips any tiles that it can't fully display due to size constraints, that's the nature of the HTML5 Canvas API
+and so that's how you can see tiles that are there but aren't fully in view even though the javascript itself doesn't have an exact feature to handle partially displaying tiles
+*/
+
 let cameraX = 0; // The total horizontal offset of the world from its origin. At startup this is 0, meaning the world starts at the left edge of the canvas. As the user drags left, this becomes negative; drag right, it becomes positive. Every tile's drawn X position is calculated relative to this value.
 let cameraY = 0; // The total vertical offset of the world from its origin. At startup this is 0, meaning the world starts at the top edge of the canvas. As the user drags up, this becomes negative; drag down, it becomes positive. Every tile's drawn Y position is calculated relative to this value.
 //So cameraX/Y is a constantly changing variable that depends on the position of map. So at the begininning of the program, it would have default coordinates.
@@ -203,15 +215,11 @@ let hoveredCell = null; // Currently-hovered cell, or null if mouse isn't over t
  * and draws the hover preview element.
  */
 function render() {
-  // =========================================================================
   // 1. CLEAR THE CANVAS
-  // =========================================================================
   // Prepares the canvas for a fresh frame by clearing previous drawings.
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // =========================================================================
   // 2. CALCULATE VISIBLE GRID BOUNDARIES (CULLING)
-  // =========================================================================
   // Computes the range of columns and rows currently inside the viewport.
   // This ensures we only draw what is on-screen, maximizing performance.
 
@@ -227,31 +235,31 @@ function render() {
   // The bottommost visible row index, clamped to the bottommost edge of the map.
   const lastRow = Math.min(WORLD_ROWS - 1, Math.floor((-cameraY + canvas.height) / TILE_SIZE));
 
-  // =========================================================================
   // 3. RENDER VISIBLE TILES
-  // =========================================================================
   // Loops only through the visible rows and columns to draw the active tiles.
-  for (let i = firstRow; i <= lastRow; i++) {
+  for (let i = firstRow; i <= lastRow; i++) { 
     for (let j = firstCol; j <= lastCol; j++) {
       // Calculates the screen position for the current tile.
-      const pixelX = cameraX + (j * TILE_SIZE);
+      //Basically: The tile at column j, row i should be drawn at horizontal pixel X and vertical pixel Y
+      const pixelX = cameraX + (j * TILE_SIZE); 
       const pixelY = cameraY + (i * TILE_SIZE);
 
       // Retrieves the tile identifier and its associated pre-loaded image asset.
-      const tileType = world[i][j];
+      const tileType = world[i][j]; //There is an actual 2d array containing the tile types for each cell in the grid, world, this is what we are extracting and referencing here
       const image = TILE_IMAGES[tileType];
       
       // Draw the tile on the screen context.
+      // Basically, it says: "Give me an image, a location, and a size, and I will slap it onto the screen instantly."
+      // In the parameters, it takes in an image, it takes in the Horizontal/Vertical pixel coordinates, as well as how big the image should be drawn, its width and height ("TILE_SIZE, TILE_SIZE" so 32x32), and given all those specifications, it draws the image in that location and in that size.
       ctx.drawImage(image, pixelX, pixelY, TILE_SIZE, TILE_SIZE);
     }
   }
 
-  // =========================================================================
   // 4. DRAW HOVER PREVIEW
-  // =========================================================================
   // Renders a semi-transparent preview of the selected tile on the hovered coordinate.
   if (hoveredCell !== null) {
     // Calculates screen coordinates for the hovered target grid space.
+    // Say cameraX = 100 — meaning the user has dragged the map 100 pixels to the right. That means the hovered tile should appear 100 pixels further right on screen than its default position.
     const x = cameraX + (hoveredCell.col * TILE_SIZE);
     const y = cameraY + (hoveredCell.row * TILE_SIZE);
     
@@ -331,13 +339,12 @@ canvas.addEventListener("mouseup", (event) => {
   isDragging = false
 });
 
-/*
-To be used later: 
+canvas.addEventListener("mouseleave", (event) => {
+  isDragging = false
+  isPainting = false
+  hoveredCell = null
+});
 
-
-
-
-
-
-
-*/
+function screenToWorld(event){
+  // Implementation for converting screen coordinates to world grid coordinates
+}
