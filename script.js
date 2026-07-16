@@ -378,4 +378,8 @@ function screenToWorld(event) {
 function paintTile(cell) {
   // if cell is null, do nothing
   // otherwise, write selectedTile into world[cell.row][cell.col]
+
+  if (cell) {
+    world[cell.row][cell.col] = selectedTile;
+  }
 }
