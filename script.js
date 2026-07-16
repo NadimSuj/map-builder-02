@@ -300,51 +300,82 @@ function render() {
 
 
 canvas.addEventListener("mousedown", (event) => {
-  //Something like:
-  // isDragging = true
-  // dragStartX = event.clientX
-  // dragStartY = event.clientY
-
-  // the browser gives you the current mouse position via event.clientX and event.clientY inside any mouse event handler.
-  isDragging = true
-  dragStartX = event.clientX
-  dragStartY = event.clientY
-  // render(); in mousedown — you don't actually need this. Pressing the mouse down doesn't change anything visible, so there's nothing to redraw
-});
-
-canvas.addEventListener("mousemove", (event) => {
-  // Something like:
-  //if (isDragging) {
-  // calculate the delta (between current mouse and dragStartX/Y)
-  // Update CameraX/Y
-  // Update dragStartX/Y
-  // Render the updated scene
-
-
-  //the browser gives you the current mouse position via event.clientX and event.clientY inside any mouse event handler.
-  if (isDragging) { 
-    const deltaX = event.clientX - dragStartX  //We put them (deltaX/Y) as const because they are not going to change within this block, they're calculated once and never reassigned or modified
-    const deltaY = event.clientY - dragStartY
-    cameraX = cameraX + deltaX 
-    cameraY = cameraY + deltaY 
-    dragStartX = event.clientX 
-    dragStartY = event.clientY 
-    render(); //*This doesnt exist yet
+  if (event.button === 2 || event.button === 1) {
+    // right or middle click → drag
+    isDragging = true;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+  } else if (event.button === 0) {
+    // left click → paint
+    isPainting = true;
+    paintTile(screenToWorld(event)); // we'll write paintTile next
   }
 });
 
-canvas.addEventListener("mouseup", (event) => {
-  // Something like:
-  // isDragging = false
-  isDragging = false
+canvas.addEventListener("mousemove", (event) => {
+  // always update hovered cell
+  hoveredCell = screenToWorld(event);
+
+  if (isDragging) {
+    const deltaX = event.clientX - dragStartX;
+    const deltaY = event.clientY - dragStartY;
+    cameraX += deltaX;
+    cameraY += deltaY;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+  } else if (isPainting) {
+    paintTile(hoveredCell);
+  }
+
+  render();
 });
 
-canvas.addEventListener("mouseleave", (event) => {
-  isDragging = false
-  isPainting = false
-  hoveredCell = null
+canvas.addEventListener("mouseup", () => {
+  isDragging = false;
+  isPainting = false;
 });
 
-function screenToWorld(event){
-  // Implementation for converting screen coordinates to world grid coordinates
+canvas.addEventListener("mouseleave", () => {
+  isDragging = false;
+  isPainting = false;
+  hoveredCell = null;
+  render();
+});
+
+canvas.addEventListener("contextmenu", (event) => { //By default, right-clicking opens the browser's context menu, which would interrupt dragging So we need to prevent it
+  event.preventDefault();
+});
+
+/**
+ * Converts screen/mouse pixel coordinates into world grid coordinates (col, row).
+ * Returns an object with { col, row } if inside world bounds, or null if outside.
+ */
+function screenToWorld(event) {
+  // 1. Get the physical position and boundaries of the canvas element on the webpage
+  const rect = canvas.getBoundingClientRect();
+
+  // 2. Calculate the mouse's X and Y coordinates relative to the top-left corner of the canvas
+  const mouseX = event.clientX - rect.left;
+  const mouseY = event.clientY - rect.top;
+
+  // 3. Reverse-engineer the camera rendering math:
+  //    Subtract the camera offset from the mouse position to get the world pixel position,
+  //    then divide by TILE_SIZE and round down using Math.floor to get the exact grid index.
+  const col = Math.floor((mouseX - cameraX) / TILE_SIZE);
+  const row = Math.floor((mouseY - cameraY) / TILE_SIZE);
+
+  // 4. Boundary Check (Guardrail):
+  //    If the calculated grid coordinate falls outside the boundaries of our actual map
+  //    (less than 0 or greater than the maximum columns/rows), return null.
+  if (col < 0 || col >= WORLD_COLS || row < 0 || row >= WORLD_ROWS) {
+    return null; 
+  }
+
+  // 5. Return the calculated grid coordinates
+  return { col: col, row: row };
+}
+
+function paintTile(cell) {
+  // if cell is null, do nothing
+  // otherwise, write selectedTile into world[cell.row][cell.col]
 }
