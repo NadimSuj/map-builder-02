@@ -381,5 +381,6 @@ function paintTile(cell) {
 
   if (cell) {
     world[cell.row][cell.col] = selectedTile;
+    render();
   }
 }
