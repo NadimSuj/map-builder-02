@@ -327,6 +327,9 @@ canvas.addEventListener("mousemove", (event) => {
     paintTile(hoveredCell);
   }
 
+  cameraX = Math.min(0, Math.max(canvas.width - (WORLD_COLS * TILE_SIZE) , cameraX)); //clamp cameraX to prevent panning beyond world bounds
+  cameraY = Math.min(0, Math.max(canvas.height - (WORLD_ROWS * TILE_SIZE) , cameraY)); //Same as above but for cameraY
+
   render();
 });
 
@@ -379,8 +382,31 @@ function paintTile(cell) {
   // if cell is null, do nothing
   // otherwise, write selectedTile into world[cell.row][cell.col]
 
-  if (cell) {
-    world[cell.row][cell.col] = selectedTile;
-    render();
+  if (cell === null) {
+    return; // If the cell is null (meaning the mouse is outside the world bounds), we simply exit the function without making any changes.
   }
+  world[cell.row][cell.col] = selectedTile; // If the cell is valid, we update the world array at the specified row and column to the currently selected tile type. This effectively "paints" the tile in the world grid.
+  render();
 }
+
+// =====================
+// TOOLBAR
+// =====================
+
+// 1. Get all tile buttons (hint: querySelectorAll with the right selector)
+
+// 2. For each button, add a click listener that:
+//    - reads the data-tile attribute
+//    - updates selectedTile
+//    - removes "active" class from all buttons
+//    - adds "active" class to the clicked button
+
+const toolbarButtons = document.querySelectorAll("#toolbar button[data-tile]"); 
+
+toolbarButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    selectedTile = button.dataset.tile;
+    toolbarButtons.forEach((b) => b.classList.remove("active"));
+    button.classList.add("active");
+  });
+});
