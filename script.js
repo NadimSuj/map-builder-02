@@ -410,3 +410,27 @@ toolbarButtons.forEach((button) => {
     button.classList.add("active");
   });
 });
+
+document.getElementById("save-btn").addEventListener("click", () => {
+  // 1. Convert world to JSON string
+  // 2. Create a Blob (a file-like object) from that string
+  // 3. Create a temporary download link and click it
+
+  const jsonString = JSON.stringify(world); // Convert the world array into a JSON string representation. This allows us to save the current state of the world in a format that can be easily stored and later restored.
+  const blob = new Blob([jsonString], { type: "application/json" }); // Create a new Blob object containing the JSON string. A Blob is a file-like object of immutable, raw data. Here, we specify the MIME type as "application/json" to indicate that the content is JSON data.
+  const url = URL.createObjectURL(blob); // Generate a temporary URL that points to the Blob object. This URL can be used to download the Blob as a file.
+  const a = document.createElement("a"); // Create a new anchor (<a>) element. This element will be used to trigger the download of the Blob when clicked.
+  a.href = url; // Set the href attribute of the anchor element to the Blob URL. This makes the anchor a download link for the Blob.
+  a.download = "map.json"; // Set the download attribute of the anchor element to specify the default filename for the downloaded file. In this case, it will be "map.json".
+  a.click(); // Programmatically click the anchor element. This simulates a user clicking the link, which triggers the download of the Blob as a file. 
+  URL.revokeObjectURL(url); // Clean up by revoking the temporary Blob URL. This frees up memory and resources associated with the Blob URL, as it is no longer needed after the download has been initiated.
+});
+
+document.getElementById("load-btn").addEventListener("click", () => {
+  // 1. Create a hidden file input element and click it
+  //    (this opens the file picker dialog)
+  // 2. When the user selects a file, read it with FileReader
+  // 3. When FileReader finishes, parse the JSON
+  // 4. Replace world contents cell by cell
+  // 5. Re-render
+});
