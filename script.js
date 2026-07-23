@@ -433,4 +433,30 @@ document.getElementById("load-btn").addEventListener("click", () => {
   // 3. When FileReader finishes, parse the JSON
   // 4. Replace world contents cell by cell
   // 5. Re-render
+
+const input = document.createElement("input"); // Create a new input element of type "file". This input will be used to allow the user to select a file from their local filesystem.
+input.type = "file"; // Set the type of the input element to "file". This tells the browser that this input is for file selection, which will open a file picker dialog when clicked.
+input.accept = ".json"; // Restrict the file types that can be selected to only JSON files. This is done by setting the accept attribute to ".json", which filters the file picker dialog to show only files with a .json extension.
+input.click(); // Programmatically click the input element. This simulates a user clicking the file input, which opens the file picker dialog for the user to select a file.
+
+input.addEventListener("change", () => { // Add an event listener for the "change" event on the input element. This event fires when the user selects a file and the input's value changes.
+  const file = input.files[0]; // Get the first file selected by the user. The input.files property is a FileList object that contains all the files selected by the user. We access the first file using index 0.
+  const reader = new FileReader(); // Create a new FileReader object. The FileReader API allows us to read the contents of files selected by the user. It provides methods to read files as text, data URLs, or binary data.
+  reader.onload = (e) => { // Set up an event handler for the "load" event of the FileReader. This event fires when the file has been successfully read. The event object (e) contains the result of the read operation.
+    const loaded = JSON.parse(e.target.result); // Parse the JSON string read from the file into a JavaScript object. The e.target.result property contains the contents of the file as a string. We use JSON.parse to convert this string back into a JavaScript array (the world state).
+    // replace world contents here
+for (let i = 0; i < WORLD_ROWS; i++) {
+  for (let j = 0; j < WORLD_COLS; j++) {
+    world[i][j] = loaded[i][j];
+  }
+}
+render();
+  };
+  reader.readAsText(file);
+});
+});
+
+document.getElementById("clear-btn").addEventListener("click", () => {
+  // loop through world and reset every cell to TILE.GRASS
+  // then re-render
 });
