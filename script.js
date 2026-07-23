@@ -110,7 +110,7 @@ Promise.all([
   TILE_IMAGES[TILE.PARK] = images[4];
 
   // NOW it's safe to render — images are ready
-  render();
+  render(); //render() is called inside Promise.all before it's defined in the file This looks like it should fail, but it works because of two JavaScript behaviors working together: function declarations are hoisted (the browser reads all function declarations before executing any code), and Promise.all resolves asynchronously (by the time it calls render(), the entire script has already finished loading).
 });
 
 /*
@@ -410,6 +410,10 @@ toolbarButtons.forEach((button) => {
     button.classList.add("active");
   });
 });
+
+// =====================
+// SAVE / LOAD / CLEAR
+// =====================
 
 document.getElementById("save-btn").addEventListener("click", () => {
   // 1. Convert world to JSON string
