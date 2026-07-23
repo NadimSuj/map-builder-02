@@ -457,15 +457,14 @@ render();
 });
 
 document.getElementById("clear-btn").addEventListener("click", () => {
-  // loop through world and reset every cell to TILE.GRASS
-  // then re-render
+// loop through world and reset every cell to TILE.GRASS
+// then re-render
 for (let i = 0; i < WORLD_ROWS; i++) {
   for (let j = 0; j < WORLD_COLS; j++) {
     world[i][j] = TILE.GRASS;
   }
 }
-
-cameraX = 0;
-cameraY = 0;
-render();
+  cameraX = 0;
+  cameraY = 0;
+  render();
 });
