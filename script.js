@@ -472,3 +472,15 @@ for (let i = 0; i < WORLD_ROWS; i++) {
   cameraY = 0;
   render();
 });
+
+// =====================
+// PATHFINDING CONFIG
+// =====================
+
+const TILE_COSTS = {
+  // fill in each tile type and its movement cost
+};
+
+function isImpassable(tileType) {
+  // returns true if the tile cannot be walked on
+}
