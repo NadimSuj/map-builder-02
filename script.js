@@ -479,8 +479,17 @@ for (let i = 0; i < WORLD_ROWS; i++) {
 
 const TILE_COSTS = {
   // fill in each tile type and its movement cost
+  grass: 1,
+  road: 1,
+  water: Infinity, // Impassable
+  building: Infinity, // Impassable
+  park: 2
 };
 
 function isImpassable(tileType) {
   // returns true if the tile cannot be walked on
+  if(TILE_COSTS[tileType] === Infinity) {
+    return true;
+  }
+  return false;
 }
