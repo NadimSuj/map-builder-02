@@ -489,3 +489,11 @@ const TILE_COSTS = {
 function isImpassable(tileType) {
   return TILE_COSTS[tileType] === Infinity;
 }
+
+function bfs(start, end) {
+  // 1. Check if start or end is impassable → return null result
+  // 2. Set up queue, visited set, cameFrom map, explored array
+  // 3. BFS loop — record each dequeued cell into explored
+  // 4. If end found, return { path, explored, nodesExplored }
+  // 5. If queue empties, return { path: null, explored, nodesExplored }
+}
