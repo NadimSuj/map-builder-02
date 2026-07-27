@@ -487,9 +487,5 @@ const TILE_COSTS = {
 };
 
 function isImpassable(tileType) {
-  // returns true if the tile cannot be walked on
-  if(TILE_COSTS[tileType] === Infinity) {
-    return true;
-  }
-  return false;
+  return TILE_COSTS[tileType] === Infinity;
 }
