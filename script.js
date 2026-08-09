@@ -477,6 +477,38 @@ for (let i = 0; i < WORLD_ROWS; i++) {
 // PATHFINDING CONFIG
 // =====================
 
+function cellKey(cell) {
+  return `${cell.row},${cell.col}`;
+}
+
+// Get the up-to-4 orthogonal neighbors of a cell, clipped to the grid bounds, if it's out of bounds, we don't count it
+function neighbors(cell) {
+  const result = [];
+  //This this variable is an array of integer pairs, it represents the row & column of surrounding "neighbor" cells, so for example, north's coordinates, { dr: -1, dc:  0 } is like that because north is one row ABOVE, ie, the previous row, the current cell, and the same logic with the rest of the integer pairs
+  //dr stands for Delta Row (Change in Row) and dc stands for Delta Column (Change in Column)
+  const directions = [
+    { dr: -1, dc:  0 }, // north
+    { dr:  1, dc:  0 }, // south
+    { dr:  0, dc: -1 }, // west
+    { dr:  0, dc:  1 }, // east
+  ];
+
+  //Loop through all the four cardinal directions defined in the directions[] array
+  for (const { dr, dc } of directions) {
+    // This is how we get our adjacent neighbor cells coordinates, we apply the Delta Row (dr) and Delta Column (dc) variables to the current cell's row/column position to calculate the exact coordinate of the adjacent neighbor.
+    const newRow = cell.row + dr;
+    const newCol = cell.col + dc;
+    //If any of our adjacent neighbors fall outside the index boundaries (< 0; or exceeding total rows/columns as defined by our global ROWS and COLS constants) then we execute 'continue,' which tells the loop to immediately drop everything, discard this invalid coordinate, and skip directly to the next direction in the array.
+    if (newRow < 0 || newRow >= WORLD_ROWS || newCol < 0 || newCol >= WORLD_COLS) {
+      continue;
+    }
+    // 'row: newRow, col: newCol' are variable declarations, the variables are being set to the neighbor cells coordinates (newRow, newCol), and we use .push() to append it to our collection array
+    result.push({ row: newRow, col: newCol });
+  }
+  //return our result array, i.e., the coordinates to our neighboring cells
+  return result;
+}
+
 const TILE_COSTS = {
   // fill in each tile type and its movement cost
   grass: 1,
@@ -496,4 +528,43 @@ function bfs(start, end) {
   // 3. BFS loop — record each dequeued cell into explored
   // 4. If end found, return { path, explored, nodesExplored }
   // 5. If queue empties, return { path: null, explored, nodesExplored }
+const explored = [];
+
+    if (isImpassable(world[start.row][start.col]) || isImpassable(world[end.row][end.col])) {
+    return { path: null, explored: [], nodesExplored: 0 };
+  } 
+
+   //how many nodes we explored
+  let nodesExplored = 0;
+
+  const queue = [start]; // BFS relies on a queue data structure, which, as you know, follows a First-In, First-Out (FIFO) strategy, we start with putting our initial starting cell
+  const visited = new Set(); //A Set() is an object in javascript that is similar to an array in the sense that it used to store multiple values, however, the difference with a Set is that the values of the Set are a collection of unique values, meaning you cannot have duplicate values or objects inside the Set, so if I add two values to the Set, and then try and add the first value to the Set again, that Set's length will still remain 2
+  visited.add(cellKey(start)); //Set the Visited Set()'s first value as our starting cell's string coordinates
+  const cameFrom = new Map(); // A Map() is a collection of key-value pairs, similar to an object in JavaScript, but with some differences. In a Map, keys can be of any type (not just strings or symbols), and they maintain the order of insertion. In this case, cameFrom will be used to keep track of the parent cells for each cell that is explored during the BFS. The key will be the string representation of a cell's coordinates (from cellKey), and the value will be the cell object that led to it. This allows us to reconstruct the path once we reach the end cell. 
+
+  while (queue.length > 0) { //As long as there are cells waiting in line, the loop keeps running
+    const current = queue.shift(); //shift() removes the first element from an array and returns that removed element. This method modifies (mutates) the original array by shifting all subsequent elements one position to the left 
+    nodesExplored++; //Increment the number of nodes explored by 1, so we can keep track of how many cells we explored in our search for a path
+    explored.push(current);
+    //If we've reach the end cell, we log the number of nodes explored and call reconstructPath() to build the path from start to end using the cameFrom map. The function returns the reconstructed path as an array of cells. 
+    if (current.row === end.row && current.col === end.col) {
+      console.log(`BFS explored ${nodesExplored} nodes`);
+      const path = reconstructPath(cameFrom, end);
+      return { path, explored, nodesExplored };
+    }
+
+    // The code loops through the up-to-4 adjacent cells provided by the neighbors() function 
+    for (const next of neighbors(current)) {
+      const key = cellKey(next); //We convert the next cell's coordinates into a unique string key using cellKey(next). This key will be used to check if the cell has already been visited and to store its parent in the cameFrom map.
+      if (isImpassable(world[next.row][next.col])) continue; //If next cell is not a road tile, we skip it and continue to the next neighbor
+      if (visited.has(key)) continue; //If the next cell has already been visited (i.e., its key is in the visited set), we skip it and continue to the next neighbor. This prevents us from revisiting cells and getting stuck in loops.
+      visited.add(key); //If the next cell is valid and unvisited, we mark it as visited by adding its key to the visited set. This ensures that we won't process this cell again in future iterations of the BFS.
+      cameFrom.set(key, current); //key is the cell we are currently exploring, and current is the cell we just came from. This line records that we reached the next cell from the current cell, allowing us to trace back the path later.
+      queue.push(next); //Push the next cell onto the queue, so it will be processed in future iterations of the BFS. This is how we expand our search outward from the starting point, exploring all reachable cells in a breadth-first manner.
+    }
+  }
+  // When we do this initial line, "const current = queue.shift()," it returns the first element, the start cell, and removes it from the queue. Then, we check if that cell is the end cell. If it is not, we explore its neighbors and add them to the queue. This process continues until we either find the end cell or exhaust all possible cells to explore. If we exit the while loop without finding the end cell, it means there is no valid path from start to end.
+
+  console.log(`BFS explored ${nodesExplored} nodes (no path)`); //Failure message, if we exit the while loop without finding the end cell, it means there is no valid path from start to end. We log the number of nodes explored and indicate that no path was found. The function then returns null to signify that no path exists.
+  return { path: null, explored, nodesExplored };
 }
