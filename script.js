@@ -713,3 +713,16 @@ function aStar(start, end) {
 
   return { path: null, explored, nodesExplored };
 }
+
+function animateResult(result) {
+  // 1. If no path and no explored cells, show popup and return
+  // 2. Set isAnimating = true
+  // 3. Keep track of which step we're on with let i = 0
+  // 4. Use setInterval to advance one step at a time:
+  //    - Draw explored[i] in the "visited" color
+  //    - i++
+  //    - When i reaches explored.length, clear the interval
+  //    - Then draw the final path in yellow
+  //    - Set isAnimating = false
+  //    - Show the popup with nodesExplored count
+}
