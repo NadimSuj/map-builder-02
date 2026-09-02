@@ -477,14 +477,17 @@ for (let i = 0; i < WORLD_ROWS; i++) {
 // PATHFINDING CONFIG
 // =====================
 
-function cellKey(cell) {
+// In JavaScript, two distinct objects containing the exact same data (e.g., {row: 5, col: 2} and {row: 5, col: 2}) are considered not equal by standard comparisons or data sets, so, the solution is: it flattens coordinate structures into unique strings like "5,2". This allows your tracking collections (Set and Map) to reliably compare and store cell states without object-reference bugs.
+// So, we have this template literal, if you do know, then a template literal is way of making strings so that we do not have to do concatentaiton, so before, we would do something like ' ("Hello world my age" + age int variable) ', but with template literals, we have our notations of '`' backticks and '${},' so that we can now do (`Hello, my name is ${name} and I am ${age} years old.`) and integrate the non-print statement variables seamlessly.
+//So what we do here with this function, is basically we just return a string corresponding to the row and column number of the cell parameter passed through, so "const cell = { row: 5, col: 12 };" Passing it through this template literal turns it into a plain text string: "5,12"
+function cellKey(cell) { 
   return `${cell.row},${cell.col}`;
 }
 
 // Get the up-to-4 orthogonal neighbors of a cell, clipped to the grid bounds, if it's out of bounds, we don't count it
 function neighbors(cell) {
   const result = [];
-  //This this variable is an array of integer pairs, it represents the row & column of surrounding "neighbor" cells, so for example, north's coordinates, { dr: -1, dc:  0 } is like that because north is one row ABOVE, ie, the previous row, the current cell, and the same logic with the rest of the integer pairs
+  //This variable is an array of integer pairs, it represents the row & column of surrounding "neighbor" cells, so for example, north's coordinates, { dr: -1, dc:  0 } is like that because north is one row ABOVE, ie, the previous row, the current cell, and the same logic with the rest of the integer pairs
   //dr stands for Delta Row (Change in Row) and dc stands for Delta Column (Change in Column)
   const directions = [
     { dr: -1, dc:  0 }, // north
@@ -518,17 +521,22 @@ const TILE_COSTS = {
   park: 2
 };
 
-function isImpassable(tileType) {
+function isImpassable(tileType) { //Returns true if the tile is impassable, false otherwise
   return TILE_COSTS[tileType] === Infinity;
 }
 
 function bfs(start, end) {
+
+  if (!start || !end) { //Check for null or undefined start or end nodes
+    return { path: null, explored: [], nodesExplored: 0 };
+  }
+
   // 1. Check if start or end is impassable → return null result
   // 2. Set up queue, visited set, cameFrom map, explored array
   // 3. BFS loop — record each dequeued cell into explored
   // 4. If end found, return { path, explored, nodesExplored }
   // 5. If queue empties, return { path: null, explored, nodesExplored }
-const explored = [];
+const explored = []; //Array to keep track of all cells that have been explored during the BFS search
 
     if (isImpassable(world[start.row][start.col]) || isImpassable(world[end.row][end.col])) {
     return { path: null, explored: [], nodesExplored: 0 };
@@ -538,14 +546,14 @@ const explored = [];
   let nodesExplored = 0;
 
   const queue = [start]; // BFS relies on a queue data structure, which, as you know, follows a First-In, First-Out (FIFO) strategy, we start with putting our initial starting cell
-  const visited = new Set(); //A Set() is an object in javascript that is similar to an array in the sense that it used to store multiple values, however, the difference with a Set is that the values of the Set are a collection of unique values, meaning you cannot have duplicate values or objects inside the Set, so if I add two values to the Set, and then try and add the first value to the Set again, that Set's length will still remain 2
+  const visited = new Set(); //A Set() is an object in javascript that is similar to an array in the sense that it's used to store multiple values, however, the difference with a Set is that the values of the Set are a collection of unique values, meaning you cannot have duplicate values or objects inside the Set, so if I add two values to the Set, and then try and add the first value to the Set again, that Set's length will still remain 2
   visited.add(cellKey(start)); //Set the Visited Set()'s first value as our starting cell's string coordinates
   const cameFrom = new Map(); // A Map() is a collection of key-value pairs, similar to an object in JavaScript, but with some differences. In a Map, keys can be of any type (not just strings or symbols), and they maintain the order of insertion. In this case, cameFrom will be used to keep track of the parent cells for each cell that is explored during the BFS. The key will be the string representation of a cell's coordinates (from cellKey), and the value will be the cell object that led to it. This allows us to reconstruct the path once we reach the end cell. 
 
   while (queue.length > 0) { //As long as there are cells waiting in line, the loop keeps running
     const current = queue.shift(); //shift() removes the first element from an array and returns that removed element. This method modifies (mutates) the original array by shifting all subsequent elements one position to the left 
     nodesExplored++; //Increment the number of nodes explored by 1, so we can keep track of how many cells we explored in our search for a path
-    explored.push(current);
+    explored.push(current); //Add the current cell to the explored array to keep track of all cells that have been visited during the BFS search
     //If we've reach the end cell, we log the number of nodes explored and call reconstructPath() to build the path from start to end using the cameFrom map. The function returns the reconstructed path as an array of cells. 
     if (current.row === end.row && current.col === end.col) {
       console.log(`BFS explored ${nodesExplored} nodes`);
@@ -556,15 +564,73 @@ const explored = [];
     // The code loops through the up-to-4 adjacent cells provided by the neighbors() function 
     for (const next of neighbors(current)) {
       const key = cellKey(next); //We convert the next cell's coordinates into a unique string key using cellKey(next). This key will be used to check if the cell has already been visited and to store its parent in the cameFrom map.
-      if (isImpassable(world[next.row][next.col])) continue; //If next cell is not a road tile, we skip it and continue to the next neighbor
+      if (isImpassable(world[next.row][next.col])) continue; //If next cell is impassible, we skip it and continue to the next neighbor
       if (visited.has(key)) continue; //If the next cell has already been visited (i.e., its key is in the visited set), we skip it and continue to the next neighbor. This prevents us from revisiting cells and getting stuck in loops.
       visited.add(key); //If the next cell is valid and unvisited, we mark it as visited by adding its key to the visited set. This ensures that we won't process this cell again in future iterations of the BFS.
-      cameFrom.set(key, current); //key is the cell we are currently exploring, and current is the cell we just came from. This line records that we reached the next cell from the current cell, allowing us to trace back the path later.
+      cameFrom.set(key, current); //key is the cell we are currently exploring, and current is the cell we just came from. This line records that we reached the next cell from the current cell, allowing us to trace back the path later. The key is "key" and the value is "current".
       queue.push(next); //Push the next cell onto the queue, so it will be processed in future iterations of the BFS. This is how we expand our search outward from the starting point, exploring all reachable cells in a breadth-first manner.
     }
   }
   // When we do this initial line, "const current = queue.shift()," it returns the first element, the start cell, and removes it from the queue. Then, we check if that cell is the end cell. If it is not, we explore its neighbors and add them to the queue. This process continues until we either find the end cell or exhaust all possible cells to explore. If we exit the while loop without finding the end cell, it means there is no valid path from start to end.
 
   console.log(`BFS explored ${nodesExplored} nodes (no path)`); //Failure message, if we exit the while loop without finding the end cell, it means there is no valid path from start to end. We log the number of nodes explored and indicate that no path was found. The function then returns null to signify that no path exists.
+  return { path: null, explored, nodesExplored };
+}
+
+function dijkstra(start, end) {
+  if (isImpassable(world[start.row][start.col]) || 
+      isImpassable(world[end.row][end.col])) {
+    return { path: null, explored: [], nodesExplored: 0 };
+  }
+
+  const dist = new Map();
+  const cameFrom = new Map();
+  const explored = [];
+  let nodesExplored = 0;
+
+  const openSet = [{ cell: start, cost: 0 }];
+  dist.set(cellKey(start), 0);
+
+  while (openSet.length > 0) {
+    let bestIndex = 0;
+    for (let i = 1; i < openSet.length; i++) {
+      if (openSet[i].cost < openSet[bestIndex].cost) {
+        bestIndex = i;
+      }
+    }
+    const removedItem = openSet.splice(bestIndex, 1)[0];
+    const current = removedItem.cell;
+    
+    const currentKey = cellKey(current);
+
+    explored.push(current);
+    nodesExplored++;
+
+    if (current.row === end.row && current.col === end.col) {
+      const path = reconstructPath(cameFrom, end);
+      return { path, explored, nodesExplored };
+    }
+
+    for (const next of neighbors(current)) {
+      if (isImpassable(world[next.row][next.col])) continue;
+      const nextKey = cellKey(next);
+      const tentativeCost = dist.get(currentKey) + 
+                            TILE_COSTS[world[next.row][next.col]];
+
+      // Relaxation step: ONLY update maps and queue if path is cheaper
+      if (!dist.has(nextKey) || tentativeCost < dist.get(nextKey)) {
+        dist.set(nextKey, tentativeCost);
+        cameFrom.set(nextKey, current);
+
+        const existingIndex = openSet.findIndex(item => cellKey(item.cell) === nextKey);
+        if (existingIndex !== -1) {
+          openSet[existingIndex].cost = tentativeCost;
+        } else {
+          openSet.push({ cell: next, cost: tentativeCost });
+        }
+      }
+    }
+  }
+
   return { path: null, explored, nodesExplored };
 }
