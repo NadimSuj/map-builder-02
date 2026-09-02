@@ -484,6 +484,17 @@ function cellKey(cell) {
   return `${cell.row},${cell.col}`;
 }
 
+function reconstructPath(cameFrom, end) { // This function is used to reconstruct the path from the start cell to the end cell after the BFS has completed. It takes in a Map called cameFrom, which contains the parent cell for each explored cell, and the end cell itself.
+  const path = [end];
+  let currentKey = cellKey(end);
+  while (cameFrom.has(currentKey)) {
+    const prev = cameFrom.get(currentKey);
+    path.unshift(prev);
+    currentKey = cellKey(prev);
+  }
+  return path;
+}
+
 // Get the up-to-4 orthogonal neighbors of a cell, clipped to the grid bounds, if it's out of bounds, we don't count it
 function neighbors(cell) {
   const result = [];
@@ -627,6 +638,74 @@ function dijkstra(start, end) {
           openSet[existingIndex].cost = tentativeCost;
         } else {
           openSet.push({ cell: next, cost: tentativeCost });
+        }
+      }
+    }
+  }
+
+  return { path: null, explored, nodesExplored };
+}
+
+function manhattanDistance(cellA, cellB) {
+  return Math.abs(cellA.row - cellB.row) + Math.abs(cellA.col - cellB.col);
+}
+
+function aStar(start, end) {
+  if (isImpassable(world[start.row][start.col]) || 
+      isImpassable(world[end.row][end.col])) {
+    return { path: null, explored: [], nodesExplored: 0 };
+  }
+
+  const dist = new Map();       // Serves as our gScore (cost from start to current node)
+  const cameFrom = new Map();
+  const explored = [];
+  let nodesExplored = 0;
+
+  // openSet stores elements with cost = fScore (dist + heuristic)
+  const openSet = [{ cell: start, cost: manhattanDistance(start, end) }];
+  dist.set(cellKey(start), 0);
+
+  while (openSet.length > 0) {
+    let bestIndex = 0;
+    for (let i = 1; i < openSet.length; i++) {
+      if (openSet[i].cost < openSet[bestIndex].cost) {
+        bestIndex = i;
+      }
+    }
+    const removedItem = openSet.splice(bestIndex, 1)[0];
+    const current = removedItem.cell;
+    
+    const currentKey = cellKey(current);
+
+    explored.push(current);
+    nodesExplored++;
+
+    if (current.row === end.row && current.col === end.col) {
+      const path = reconstructPath(cameFrom, end);
+      return { path, explored, nodesExplored };
+    }
+
+    for (const next of neighbors(current)) {
+      if (isImpassable(world[next.row][next.col])) continue;
+      const nextKey = cellKey(next);
+      
+      // Calculate real cost (gScore) using tile costs rather than fixed +1 steps
+      const tentativeG = dist.get(currentKey) + 
+                         TILE_COSTS[world[next.row][next.col]];
+
+      // Relaxation check: only proceed if this path to 'next' is better
+      if (!dist.has(nextKey) || tentativeG < dist.get(nextKey)) {
+        dist.set(nextKey, tentativeG);
+        cameFrom.set(nextKey, current);
+
+        // f = g (actual cost) + h (estimated distance to end)
+        const fScore = tentativeG + manhattanDistance(next, end);
+
+        const existingIndex = openSet.findIndex(item => cellKey(item.cell) === nextKey);
+        if (existingIndex !== -1) {
+          openSet[existingIndex].cost = fScore;
+        } else {
+          openSet.push({ cell: next, cost: fScore });
         }
       }
     }
