@@ -740,15 +740,14 @@ function animateResult(result) {
         showPopup(`No path found! Explored ${result.nodesExplored} nodes.`);
       }
 
+      // redraw markers AFTER path so they sit on top
+      if (startCell) drawCellOutline(startCell.row, startCell.col, "#22aa22", 4);
+      if (endCell) drawCellOutline(endCell.row, endCell.col, "#cc2222", 4);
+
       isAnimating = false;
       setPathfindingButtonsDisabled(false);
     }
   }, 20); // 20ms step delay
-
-// after drawing the path
-if (startCell) drawCellOutline(startCell.row, startCell.col, "#22aa22", 4);
-if (endCell) drawCellOutline(endCell.row, endCell.col, "#cc2222", 4);
-
 
 }
 
@@ -772,6 +771,34 @@ function drawCellOutline(row, col, color, thickness) {
 }
 
 function showPopup(message) {
-  // we'll design this after the animation works
-  // for now just console.log(message)
+  console.log(message);
 }
+
+// =====================
+// PATHFINDING BUTTONS
+// =====================
+
+// Set Start button
+document.getElementById("set-start-btn").addEventListener("click", () => {
+  // your code
+});
+
+// Set End button  
+document.getElementById("set-end-btn").addEventListener("click", () => {
+  // your code
+});
+
+// BFS button
+document.getElementById("bfs-btn").addEventListener("click", () => {
+  // your code
+});
+
+// Dijkstra's button
+document.getElementById("dijkstra-btn").addEventListener("click", () => {
+  // your code
+});
+
+// A* button
+document.getElementById("astar-btn").addEventListener("click", () => {
+  // your code
+});
