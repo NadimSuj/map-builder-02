@@ -289,15 +289,20 @@ if (currentPath) {
     // Say cameraX = 100 — meaning the user has dragged the map 100 pixels to the right. That means the hovered tile should appear 100 pixels further right on screen than its default position.
     const x = cameraX + (hoveredCell.col * TILE_SIZE);
     const y = cameraY + (hoveredCell.row * TILE_SIZE);
-    
-    // Set global opacity to 40% for the preview effect.
-    ctx.globalAlpha = 0.4;
-    
-    // Draw the image of the selected tile at the hovered location.
-    ctx.drawImage(TILE_IMAGES[selectedTile], x, y, TILE_SIZE, TILE_SIZE);
-    
-    // Reset global opacity back to 100% so subsequent rendering is unaffected.
-    ctx.globalAlpha = 1.0;
+
+    if (mode === "set-start" || mode === "set-end") {
+      // In start/end placement mode, preview a colored ring instead of a tile.
+      drawCellRing(x, y, mode === "set-start" ? "#22aa22" : "#cc2222");
+    } else {
+      // Set global opacity to 40% for the preview effect.
+      ctx.globalAlpha = 0.4;
+
+      // Draw the image of the selected tile at the hovered location.
+      ctx.drawImage(TILE_IMAGES[selectedTile], x, y, TILE_SIZE, TILE_SIZE);
+
+      // Reset global opacity back to 100% so subsequent rendering is unaffected.
+      ctx.globalAlpha = 1.0;
+    }
   }
 
 if (startCell) drawCellOutline(startCell.row, startCell.col, "#22aa22", 4);
@@ -833,6 +838,22 @@ function drawCellOutline(row, col, color, thickness) {
     TILE_SIZE - thickness,
     TILE_SIZE - thickness
   );
+}
+
+// Draws a hollow circular ring centered on the tile at screen coords (x, y).
+// Used as the hover preview when placing the start or end cell.
+function drawCellRing(x, y, color) {
+  const cx = x + TILE_SIZE / 2;
+  const cy = y + TILE_SIZE / 2;
+  const radius = TILE_SIZE / 2 - 3;
+
+  ctx.globalAlpha = 0.7;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 1.0;
 }
 
 let popupTimeout = null; // track the current dismiss timer
