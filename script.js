@@ -525,6 +525,10 @@ for (let i = 0; i < WORLD_ROWS; i++) {
 }
   cameraX = 0;
   cameraY = 0;
+  startCell = null;
+  endCell = null;
+  mode = "paint";
+  updateModeButtons();
   exploredCells = [];
   currentPath = null;
   render();
@@ -774,7 +778,7 @@ function animateResult(result) {
   render();
   if (startCell) drawCellOutline(startCell.row, startCell.col, "#22aa22", 4);
   if (endCell) drawCellOutline(endCell.row, endCell.col, "#cc2222", 4);
-  
+
   let step = 0;
   animationInterval = setInterval(() => {
     if (step < result.explored.length) {
