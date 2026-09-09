@@ -835,8 +835,18 @@ function drawCellOutline(row, col, color, thickness) {
   );
 }
 
+let popupTimeout = null; // track the current dismiss timer
+
 function showPopup(message) {
-  console.log(message);
+  clearTimeout(popupTimeout); // cancel any existing timer before starting a new one
+
+  document.getElementById("popup-message").textContent = message;
+  const popup = document.getElementById("popup");
+  popup.style.display = "block";
+
+  popupTimeout = setTimeout(() => {
+    popup.style.display = "none";
+  }, 3000);
 }
 
 // =====================
