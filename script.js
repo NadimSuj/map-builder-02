@@ -139,10 +139,14 @@ the Image object is the object containing the actual loaded image resource that 
 
 // 6. startCell, endcell, and mode variables for pathfinding
 
+// 7. exploredCells and currentPath arrays to track cells explored and the current path during pathfinding animations
+
 const world = []; // This variable is a 2D array that represents the grid of tiles in our world. Each element in the world array corresponds to a cell in the grid, and it stores the type of tile that is present in that cell (e.g., empty, road, building, park). The world array is initialized as an empty array, and then we use nested loops to fill it with rows and columns of TILE.GRASS values.
 let startCell = null;
 let endCell = null;
 let mode = "paint";
+let exploredCells = [];
+let currentPath = null;
 
 //world is filled horizontally running until it hits the amount of columns, and that process runs for however many rows there are 
 for(let i = 0; i < WORLD_ROWS; i++){
@@ -259,6 +263,24 @@ function render() {
       ctx.drawImage(image, pixelX, pixelY, TILE_SIZE, TILE_SIZE);
     }
   }
+
+  // Redraw explored cells overlay
+for (const cell of exploredCells) {
+  const x = cameraX + (cell.col * TILE_SIZE);
+  const y = cameraY + (cell.row * TILE_SIZE);
+  ctx.fillStyle = "rgba(0, 255, 255, 0.5)";
+  ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+}
+
+// Redraw path overlay
+if (currentPath) {
+  for (const cell of currentPath) {
+    const x = cameraX + (cell.col * TILE_SIZE);
+    const y = cameraY + (cell.row * TILE_SIZE);
+    ctx.fillStyle = "rgba(255, 220, 0, 0.7)";
+    ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+  }
+}
 
   // 4. DRAW HOVER PREVIEW
   // Renders a semi-transparent preview of the selected tile on the hovered coordinate.
@@ -503,6 +525,8 @@ for (let i = 0; i < WORLD_ROWS; i++) {
 }
   cameraX = 0;
   cameraY = 0;
+  exploredCells = [];
+  currentPath = null;
   render();
 });
 
@@ -732,7 +756,11 @@ let animationInterval = null;
 function animateResult(result) {
   if (isAnimating) {
     clearInterval(animationInterval);
+    isAnimating = false;
   }
+  // reset exploredCells and currentPath for the new animation 
+  exploredCells = [];
+  currentPath = null;
 
   if (!result || !result.explored || result.explored.length === 0) {
     showPopup("No path found!");
@@ -746,9 +774,7 @@ function animateResult(result) {
   render();
   if (startCell) drawCellOutline(startCell.row, startCell.col, "#22aa22", 4);
   if (endCell) drawCellOutline(endCell.row, endCell.col, "#cc2222", 4);
-
   
-
   let step = 0;
   animationInterval = setInterval(() => {
     if (step < result.explored.length) {
@@ -757,11 +783,13 @@ function animateResult(result) {
       const y = cameraY + (cell.row * TILE_SIZE);
       ctx.fillStyle = "rgba(0, 255, 255, 0.5)";
       ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+      exploredCells.push(cell);
       step++;
     } else {
       clearInterval(animationInterval);
 
       if (result.path) {
+        currentPath = result.path;
         for (const cell of result.path) {
           const x = cameraX + (cell.col * TILE_SIZE);
           const y = cameraY + (cell.row * TILE_SIZE);
