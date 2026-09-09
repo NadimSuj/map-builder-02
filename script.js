@@ -137,7 +137,12 @@ the Image object is the object containing the actual loaded image resource that 
 
 // 5. hoveredCell
 
+// 6. startCell, endcell, and mode variables for pathfinding
+
 const world = []; // This variable is a 2D array that represents the grid of tiles in our world. Each element in the world array corresponds to a cell in the grid, and it stores the type of tile that is present in that cell (e.g., empty, road, building, park). The world array is initialized as an empty array, and then we use nested loops to fill it with rows and columns of TILE.GRASS values.
+let startCell = null;
+let endCell = null;
+let mode = "paint";
 
 //world is filled horizontally running until it hits the amount of columns, and that process runs for however many rows there are 
 for(let i = 0; i < WORLD_ROWS; i++){
@@ -272,6 +277,9 @@ function render() {
     // Reset global opacity back to 100% so subsequent rendering is unaffected.
     ctx.globalAlpha = 1.0;
   }
+
+if (startCell) drawCellOutline(startCell.row, startCell.col, "#22aa22", 4);
+if (endCell) drawCellOutline(endCell.row, endCell.col, "#cc2222", 4);
 }
 
 // =====================
@@ -298,17 +306,32 @@ function render() {
 //    - converts mouse pixel position to world grid coordinates
 //    - returns { row, col } or null if outside world bounds
 
+// 6. updateModeButtons() to highlight the active mode button
+//    - called after changing mode or on render
+//    - toggles "active" class on the Set Start and Set End buttons based on the current mode
+
 
 canvas.addEventListener("mousedown", (event) => {
   if (event.button === 2 || event.button === 1) {
-    // right or middle click → drag
     isDragging = true;
     dragStartX = event.clientX;
     dragStartY = event.clientY;
   } else if (event.button === 0) {
-    // left click → paint
-    isPainting = true;
-    paintTile(screenToWorld(event)); // we'll write paintTile next
+    const cell = screenToWorld(event);
+    if (mode === "set-start") {
+      startCell = cell;
+      mode = "paint";
+      updateModeButtons();
+      render();
+    } else if (mode === "set-end") {
+      endCell = cell;
+      mode = "paint";
+      updateModeButtons();
+      render();
+    } else {
+      isPainting = true;
+      paintTile(cell);
+    }
   }
 });
 
@@ -379,6 +402,9 @@ function screenToWorld(event) {
 }
 
 function paintTile(cell) {
+
+  if (isAnimating) return; //respect the animation state and don't allow painting while an animation is running
+
   // if cell is null, do nothing
   // otherwise, write selectedTile into world[cell.row][cell.col]
 
@@ -387,6 +413,13 @@ function paintTile(cell) {
   }
   world[cell.row][cell.col] = selectedTile; // If the cell is valid, we update the world array at the specified row and column to the currently selected tile type. This effectively "paints" the tile in the world grid.
   render();
+}
+
+function updateModeButtons() {
+  const startBtn = document.getElementById("set-start-btn");
+  const endBtn = document.getElementById("set-end-btn");
+  startBtn.classList.toggle("active", mode === "set-start");
+  endBtn.classList.toggle("active", mode === "set-end");
 }
 
 // =====================
@@ -780,25 +813,42 @@ function showPopup(message) {
 
 // Set Start button
 document.getElementById("set-start-btn").addEventListener("click", () => {
-  // your code
+  mode = "set-start";
+  updateModeButtons();
 });
 
 // Set End button  
 document.getElementById("set-end-btn").addEventListener("click", () => {
-  // your code
+  mode = "set-end";
+  updateModeButtons();
 });
 
 // BFS button
 document.getElementById("bfs-btn").addEventListener("click", () => {
-  // your code
+  if (isAnimating) return;
+  if (!startCell || !endCell) {
+    showPopup("Place Start/End node before pathfinding");
+    return;
+  }
+  animateResult(bfs(startCell, endCell));
 });
 
 // Dijkstra's button
 document.getElementById("dijkstra-btn").addEventListener("click", () => {
-  // your code
+  if (isAnimating) return;
+  if (!startCell || !endCell) {
+    showPopup("Place Start/End node before pathfinding");
+    return;
+  }
+  animateResult(dijkstra(startCell, endCell));
 });
 
 // A* button
 document.getElementById("astar-btn").addEventListener("click", () => {
-  // your code
+  if (isAnimating) return;
+  if (!startCell || !endCell) {
+    showPopup("Place Start/End node before pathfinding");
+    return;
+  }
+  animateResult(aStar(startCell, endCell));
 });
