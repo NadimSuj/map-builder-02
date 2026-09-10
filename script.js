@@ -22,7 +22,7 @@ const ctx = canvas.getContext("2d"); //This variable stores an object called a "
 
 // Set canvas to fill the viewport below the toolbar
 canvas.width = window.innerWidth;
-canvas.height = window.innerHeight - 80; // 80px toolbar height
+canvas.height = window.innerHeight - 57; // 57px toolbar height
 
 // World size: fixed number of tiles, bigger than viewport
 const WORLD_COLS = 100;
@@ -33,9 +33,23 @@ const TILE_SIZE = 32;
 const TILE = {
   GRASS: "grass",
   ROAD: "road",
+  ROAD2: "road2",
+  ROAD_UR: "road-ur", // road upper right corner
+  ROAD_UL: "road-ul", // road upper left corner
+  INTERSECTION: "intersection",
+  ROAD_BL: "road-bl", // road bottom left corner
+  ROAD_BR: "road-br", // road bottom right corner
   WATER: "water",
   BUILDING: "building",
-  PARK: "park"
+  PARK: "park",
+  FLOWERS: "flowers",
+  BUILDING_GRAY: "building-gray", // single building gray
+  APARTMENTS: "apartments",
+  FACTORY: "factory",
+  TREE: "tree", // tree singular
+  TREES: "trees",
+  TRUCK: "truck",
+  PLANE: "plane"
 };
 
 // Will map tile type keys to loaded Image objects
@@ -94,20 +108,49 @@ You could call it results or loadedTiles or anything. images just makes it clear
 
 Promise.all([
   loadImage("Images/tile_0001.png"), // grass
-  loadImage("Images/tile_0166.png"), // road
-  loadImage("Images/tile_0039.png"), // water
+  loadImage("Images/tile_0144.png"), // road
+  loadImage("Images/tile_0110.png"), // road 2
+  loadImage("Images/tile_0129.png"), // road upper right corner
+  loadImage("Images/tile_0127.png"), // road upper left corner
+  loadImage("Images/tile_0146.png"), // intersection
+  loadImage("Images/tile_0163.png"), // road bottom left corner
+  loadImage("Images/tile_0165.png"), // road bottom right corner
+  loadImage("Images/tile_0037.png"), // water
   loadImage("Images/tile_0064.png"), // building
   loadImage("Images/tile_0000.png"), // park
+  loadImage("Images/tile_0002.png"), // flowers
+  loadImage("Images/tile_0009.png"), // single building gray
+  loadImage("Images/tile_0044.png"), // apartments
+  loadImage("Images/tile_0083.png"), // factory
+  loadImage("Images/tile_0094.png"), // tree singular
+  loadImage("Images/tile_0112.png"), // trees
+  loadImage("Images/tile_0114.png"), // truck
+  loadImage("Images/tile_0154.png"), // plane
+
 ]).then((images) => {
   // images[0] is the loaded grass Image object
   // images[1] is the loaded road Image object
-  // etc.
+  // etc. — order matches the loadImage() calls above
 
   TILE_IMAGES[TILE.GRASS] = images[0];
   TILE_IMAGES[TILE.ROAD] = images[1];
-  TILE_IMAGES[TILE.WATER] = images[2];
-  TILE_IMAGES[TILE.BUILDING] = images[3];
-  TILE_IMAGES[TILE.PARK] = images[4];
+  TILE_IMAGES[TILE.ROAD2] = images[2];
+  TILE_IMAGES[TILE.ROAD_UR] = images[3];
+  TILE_IMAGES[TILE.ROAD_UL] = images[4];
+  TILE_IMAGES[TILE.INTERSECTION] = images[5];
+  TILE_IMAGES[TILE.ROAD_BL] = images[6];
+  TILE_IMAGES[TILE.ROAD_BR] = images[7];
+  TILE_IMAGES[TILE.WATER] = images[8];
+  TILE_IMAGES[TILE.BUILDING] = images[9];
+  TILE_IMAGES[TILE.PARK] = images[10];
+  TILE_IMAGES[TILE.FLOWERS] = images[11];
+  TILE_IMAGES[TILE.BUILDING_GRAY] = images[12];
+  TILE_IMAGES[TILE.APARTMENTS] = images[13];
+  TILE_IMAGES[TILE.FACTORY] = images[14];
+  TILE_IMAGES[TILE.TREE] = images[15];
+  TILE_IMAGES[TILE.TREES] = images[16];
+  TILE_IMAGES[TILE.TRUCK] = images[17];
+  TILE_IMAGES[TILE.PLANE] = images[18];
 
   // NOW it's safe to render — images are ready
   render(); //render() is called inside Promise.all before it's defined in the file This looks like it should fail, but it works because of two JavaScript behaviors working together: function declarations are hoisted (the browser reads all function declarations before executing any code), and Promise.all resolves asynchronously (by the time it calls render(), the entire script has already finished loading).
@@ -581,9 +624,23 @@ function neighbors(cell) {
 const TILE_COSTS = {
   grass: 1,
   road: 1,
+  road2: 1,
+  "road-ur": 1,
+  "road-ul": 1,
+  intersection: 1,
+  "road-bl": 1,
+  "road-br": 1,
   water: Infinity,
   building: Infinity,
-  park: 2
+  park: 2,
+  flowers: 2,
+  "building-gray": Infinity,
+  apartments: Infinity,
+  factory: Infinity,
+  tree: 3,
+  trees: 3,
+  truck: Infinity,
+  plane: Infinity
 };
 
 function isImpassable(tileType) {
